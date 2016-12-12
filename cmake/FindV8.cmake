@@ -7,25 +7,39 @@ find_library(V8_LIBRARY
     NAMES
       libv8.so
     HINTS
-       ${VENDOR_DIR}/v8/out.gn/x64.release
+       ${VENDOR_DIR}/v8/out.gn.shared/x64.release
+)
+
+find_file(V8_BASE_LIB
+    NAMES
+      libv8_libbase.so
+    HINTS
+       ${VENDOR_DIR}/v8/out.gn.shared/x64.release
+)
+
+find_file(V8_PLATFORM_LIB
+    NAMES
+      libv8_libplatform.so
+    HINTS
+       ${VENDOR_DIR}/v8/out.gn.shared/x64.release
 )
 
 find_library(V8_ICU_I18N
     NAMES
         libicui18n.so
     HINTS
-       ${VENDOR_DIR}/v8/out.gn/x64.release
+       ${VENDOR_DIR}/v8/out.gn.shared/x64.release
 )
 
 find_library(V8_ICU_UC
     NAMES
         libicuuc.so
     HINTS
-       ${VENDOR_DIR}/v8/out.gn/x64.release
+       ${VENDOR_DIR}/v8/out.gn.shared/x64.release
 )
 
 set(V8_ICU_LIBS ${V8_ICU_I18N} ${V8_ICU_UC})
-set(V8_LIBRARIES ${V8_ICU_LIBS} ${V8_LIBRARY} )
+set(V8_LIBRARIES -Wl,--start-group ${V8_ICU_LIBS} ${V8_BASE_LIB} ${V8_PLATFORM_LIB} ${V8_LIBRARY} -Wl,--end-group )
 
 mark_as_advanced(V8_INCLUDE_DIR)
 mark_as_advanced(V8_LIBRARIES)
