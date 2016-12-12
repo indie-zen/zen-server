@@ -1,5 +1,4 @@
 
-
 ## V8
 
 Zen Server currently requires V8 version 5.6.326.25 or greater.
@@ -12,12 +11,10 @@ tools/dev/v8gen.py x64.release
 ninja -C out.gn/x64.release
 ```
 
-To do a shared build
+To do a shared build (Zen Server needs a shared build right now)
 ```
 gn gen out.gn.shared/x64.release --args='is_component_build=true'
 ninja -C out.gn.shared/x64.release
 ```
-
-I'm unsure of how to build libplatform; still working on that.
 
 Eventually this dependency will be removed (See issue #7)
