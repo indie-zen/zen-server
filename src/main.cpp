@@ -46,6 +46,27 @@ reportException(v8::Isolate* _pIsolate, v8::TryCatch* _pTryCatch)
     }
 }
 
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+// The callback that is invoked by v8 whenever the JavaScript 'print'
+// function is called.  Prints its arguments on stdout separated by
+// spaces and ending with a newline.
+void
+print(const v8::FunctionCallbackInfo<v8::Value>& args) {
+  bool first = true;
+  for (int i = 0; i < args.Length(); i++) {
+    v8::HandleScope handle_scope(args.GetIsolate());
+    if (first) {
+      first = false;
+    } else {
+      printf(" ");
+    }
+    v8::String::Utf8Value str(args[i]);
+    const char* cstr = toCString(str);
+    printf("%s", cstr);
+  }
+  printf("\n");
+  fflush(stdout);
+}
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 v8::MaybeLocal<v8::String>
@@ -222,7 +243,14 @@ main(int _argc, char** _argv)
     v8::HandleScope scope(isolate);
 
     // Create a new context.
-    v8::Local<v8::Context> context = v8::Context::New(isolate);
+    v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
+
+    global->Set(
+      v8::String::NewFromUtf8(isolate, "print", v8::NewStringType::kNormal)
+          .ToLocalChecked(),
+      v8::FunctionTemplate::New(isolate, print));
+
+    v8::Local<v8::Context> context = v8::Context::New(isolate, nullptr, global);
 
     // Enter the context for compiling and running the script.
     v8::Context::Scope context_scope(context);
