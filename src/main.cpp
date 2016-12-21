@@ -25,7 +25,6 @@ toCString(const v8::String::Utf8Value& value)
   return *value ? *value : "<string conversion failed>";
 }
 
-
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 void 
 reportException(v8::Isolate* _pIsolate, v8::TryCatch* _pTryCatch)
@@ -230,8 +229,10 @@ main(int _argc, char** _argv)
     configuration["arg0"] = _argv[0];
 
     auto pScriptEngine = Zen::Zv8::V8EngineFactory::getSingleton().create("javasript");
-    
+
     pScriptEngine->initialize(&configuration);
+
+    pScriptEngine->executeScript(startupScript);
 
     // return runScript(platform, isolate, startupScript.c_str());
     

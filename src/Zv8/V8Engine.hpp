@@ -33,7 +33,32 @@ public:
     /// @name V8Engine implementation
     /// @{
 public:
+    /// Implementation of managed_self_ref from Zen 1.x
     std::shared_ptr<V8Engine> getSelfReference();
+    
+    /// Execute a script that is embedded in a string
+    /// @param _source - String to execute
+    /// @param _name - Name of the string (usually the URI where the string
+    ///     was loaded from)
+    /// @param _printResult - output the results of the script to std::cout
+    /// @param _reportExceptions - output an exception report if the script throws
+    ///     an uncaught exception.
+    bool executeString(v8::Local<v8::String> _source, v8::Local<v8::Value> _name, 
+        bool _printResult, bool _reportExecptions);
+    
+    /// Read a file into a (maybe local) string
+    /// @todo Zen Server should not support direct file access; instead, all
+    ///     source must be loaded from a container local segment of Zen Spaces.
+    ///     This is only being supported as a temporary measure until Zen Spaces
+    ///     integration is complete.
+    v8::MaybeLocal<v8::String> readFile(const std::string& _scriptName);
+
+    /// Report an exception
+    /// Output an exception to std::cout (maybe it should be std::cerr?)
+    void reportException(v8::TryCatch* _pTryCatch);
+
+    /// Convert a v8 string to a C string
+    const char* toCString(const v8::String::Utf8Value& value); 
     /// @}
 
     /// @name 'Structors
@@ -49,7 +74,10 @@ private:
     v8::Platform*                   m_pPlatform;
     v8::Isolate*                    m_pIsolate; 
     v8::Isolate::Scope*             m_pGlobalScope;
-    v8::Local<v8::ObjectTemplate>   m_global;
+    v8::HandleScope*                m_pHandleScope;
+
+    // v8::Global<v8::ObjectTemplate>   m_global;
+    v8::Global<v8::Context>         m_context;
     /// @}
     
 };  // class V8Engine
