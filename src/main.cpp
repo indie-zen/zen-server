@@ -1,7 +1,13 @@
-#include <string>
 #include <iostream>
+#include <map>
+#include <string>
 
+#include "Zv8/V8EngineFactory.hpp"
+
+// TODO This will eventually go away once we've fully switched over to the 
+// Zen Scripting framework
 #include <v8.h>
+
 #include <libplatform/libplatform.h>
 
 #include <boost/program_options.hpp>
@@ -97,15 +103,14 @@ readFile(v8::Isolate* _pIsolate, const std::string& _scriptName)
                 return returnVal;
             }
         }
-        std::cout << "In readFile" << std::endl;
-        std::cout << pChars << std::endl;
+
         returnVal = v8::String::NewFromUtf8(_pIsolate, pChars, 
             v8::NewStringType::kNormal, static_cast<int>(size));
+
         delete[] pChars;
         fclose(pFile);
     }
-    
-    std::cout << "Returning from readFile" << std::endl;
+
     return returnVal;
 }
 
@@ -117,33 +122,29 @@ executeString(v8::Isolate* _pIsolate,
     bool _printResult, 
     bool _reportExecptions)
 {
-    std::cout << "in executeString" << std::endl;
     v8::HandleScope        handleScope(_pIsolate);
     v8::TryCatch           tryCatch(_pIsolate);
     v8::ScriptOrigin       origin(_name);
     v8::Local<v8::Context> context(_pIsolate->GetCurrentContext());
     v8::Local<v8::Script>  script;
     
-    std::cout << "Compiling..." << std::endl;
     if (!v8::Script::Compile(context, _source, &origin).ToLocal(&script)) 
     {
-        std::cout << "Error compiling" << std::endl;
+        std::cout << "Exception occured while compiling script" << std::endl;
         if (_reportExecptions)
         {
             reportException(_pIsolate, &tryCatch);
         }
-        std::cout << "Exception occured while compiling script" << std::endl;
         return false;
     }
     v8::Local<v8::Value> result;
-    std::cout << "Running..." << std::endl;
     if (!script->Run(context).ToLocal(&result)) 
     {
+        std::cout << "Exception occured while running script" << std::endl;
         if (_reportExecptions)
         {
             reportException(_pIsolate, &tryCatch);
         }
-        std::cout << "Exception occured while running script" << std::endl;
         return false;
     }
     std::cout << "Got results" << std::endl;
@@ -161,7 +162,6 @@ int
 runScript(v8::Platform* _pPlatform, v8::Isolate* _pIsolate, 
     const char* _pScriptName)
 {
-    std::cout << "In runScript" << std::endl;
     v8::Local<v8::String> file_name =
         v8::String::NewFromUtf8(_pIsolate, _pScriptName, v8::NewStringType::kNormal)
             .ToLocalChecked();
@@ -169,7 +169,6 @@ runScript(v8::Platform* _pPlatform, v8::Isolate* _pIsolate,
     v8::Local<v8::String> source;
     if (!readFile(_pIsolate, _pScriptName).ToLocal(&source))
     {
-        std::cerr << "Error reading " << _pScriptName << std::endl;
         return ERR_LOADING_STARTUP_SCRIPT;
     }
     bool success = executeString(_pIsolate, source, file_name, true, true);
@@ -186,7 +185,8 @@ int
 main(int _argc, char** _argv) 
 {
     std::cout << "Welcome to Zen Server Daemon" << std::endl;
-
+    std::cout << _argv[0] << std::endl;
+    
     // Declare the supported options.
     po::options_description description("Allowed options");
 
@@ -224,42 +224,18 @@ main(int _argc, char** _argv)
     // TODO make sure startupScript exists.
 
     // Initialize V8 script engine 
-    // TODO Load script engine based on scripting language command line argument
-    v8::V8::InitializeICUDefaultLocation(_argv[0]);
-    v8::V8::InitializeExternalStartupData(_argv[0]);
-    v8::Platform* platform = v8::platform::CreateDefaultPlatform();
-    v8::V8::InitializePlatform(platform);
-    v8::V8::Initialize();
+    // TODO this will need to change once I_ScriptEngine uses I_Configuration
+    // instead of map<string, string>.
+    std::map<std::string, std::string> configuration;
+    configuration["arg0"] = _argv[0];
 
-    // Create a new Isolate and make it the current one.
-    v8::Isolate::CreateParams create_params;
-    create_params.array_buffer_allocator =
-      v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-      
-    v8::Isolate* isolate = v8::Isolate::New(create_params);
-    v8::Isolate::Scope isolate_scope(isolate);
+    auto pScriptEngine = Zen::Zv8::V8EngineFactory::getSingleton().create("javasript");
+    
+    pScriptEngine->initialize(&configuration);
 
-    // Create a stack-allocated handle scope.
-    v8::HandleScope scope(isolate);
-
-    // Create a new context.
-    v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
-
-    global->Set(
-      v8::String::NewFromUtf8(isolate, "print", v8::NewStringType::kNormal)
-          .ToLocalChecked(),
-      v8::FunctionTemplate::New(isolate, print));
-
-    v8::Local<v8::Context> context = v8::Context::New(isolate, nullptr, global);
-
-    // Enter the context for compiling and running the script.
-    v8::Context::Scope context_scope(context);
-
-    if(isolate == nullptr) 
-    {
-        std::cout << "Error creating isolate." << std::endl;
-    }
-    return runScript(platform, isolate, startupScript.c_str());
+    // return runScript(platform, isolate, startupScript.c_str());
+    
+    return 0;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
