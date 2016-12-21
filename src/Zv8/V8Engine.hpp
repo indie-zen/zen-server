@@ -1,11 +1,15 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-// Python plugin for Zen Scripting
+// V8 plugin for Zen Scripting
 //
 // Copyright (C) 2001 - 2016 Raymond A. Richards
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #pragma once
 
 #include <Zen/Scripting/I_ScriptEngine.hpp>
+
+#include <memory>
+
+#include <v8.h>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
@@ -14,6 +18,7 @@ namespace Zv8 {
 
 class V8Engine
 :   public Zen::Scripting::I_ScriptEngine
+,   public std::enable_shared_from_this<V8Engine>
 {
     /// @name I_ScriptEngine implementation
     /// @{
@@ -28,6 +33,7 @@ public:
     /// @name V8Engine implementation
     /// @{
 public:
+    std::shared_ptr<V8Engine> getSelfReference();
     /// @}
 
     /// @name 'Structors
@@ -40,8 +46,10 @@ public:
     /// @name Member variables
     /// @{
 private:
-    v8::Platform*   m_pPlatform;
-    v8::Isolate*    m_pIsolate; 
+    v8::Platform*                   m_pPlatform;
+    v8::Isolate*                    m_pIsolate; 
+    v8::Isolate::Scope*             m_pGlobalScope;
+    v8::Local<v8::ObjectTemplate>   m_global;
     /// @}
     
 };  // class V8Engine

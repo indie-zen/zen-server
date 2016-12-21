@@ -1,5 +1,5 @@
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
-// Python plugin for Zen Scripting
+// V8 plugin for Zen Scripting
 //
 // Copyright (C) 2001 - 2016 Raymond A. Richards
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -32,11 +32,13 @@ V8EngineFactory::create(const std::string& _name)
 {
     if (_name == "javasript")
     {
-        V8Engine* pRawEngine = new V8Engine();
+        // This will do the right thing, including replacement for
+        // managed self reference (using enable_shared_from_this)
+        pScriptEngine_type pService = std::make_shared<V8Engine>();
 
-        pScriptEngine_type pService(pRawEngine, boost::bind(&V8EngineFactory::onDestroy,this,_1));
-
-        pRawEngine->setSelfReference(pService.getWeak());
+        // TODO Figure out how to make the deleter be onDestroy the way
+        // managed pointers were.
+        // (pRawEngine, boost::bind(&V8EngineFactory::onDestroy,this,_1));
 
         return pService;
     }
@@ -52,7 +54,7 @@ V8EngineFactory::onDestroy(wpScriptEngine_type _pScriptEngine)
     // _pScriptEngine->onDestroyEvent(_pScriptEngine);
 
     // Delete the ScriptEngine
-    V8Engine* pScriptEngine = dynamic_cast<V8Engine*>(_pScriptEngine.get());
+    V8Engine* pScriptEngine = dynamic_cast<V8Engine*>(_pScriptEngine.lock().get());
 
     if( pScriptEngine )
     {
