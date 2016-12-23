@@ -4,6 +4,7 @@
 // Copyright (C) 2001 - 2016 Raymond A. Richards
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 #include "V8Engine.hpp"
+#include "V8Module.hpp"
 
 #include <cstdio>
 #include <iostream>
@@ -137,7 +138,8 @@ V8Engine::executeMethod(boost::any& _object, boost::any& _method, std::vector<bo
 V8Engine::pScriptModule_type
 V8Engine::createScriptModule(const std::string& _moduleName, const std::string& _docString)
 {
-    throw std::runtime_error("V8Engine::createScriptModule(): Error, not implemented.");
+    // TODO Preserve a reference to the script module?
+    return pScriptModule_type(new V8Module(this, _moduleName, _docString));
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~

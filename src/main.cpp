@@ -14,6 +14,8 @@
 
 namespace po = boost::program_options;
 
+#include "Console.hpp"
+
 #define ERR_NO_COMMAND_LINE         1
 #define ERR_LOADING_STARTUP_SCRIPT  2
 #define ERR_EXECUTE_SCRIPT          4
@@ -232,10 +234,11 @@ main(int _argc, char** _argv)
 
     pScriptEngine->initialize(&configuration);
 
+    auto console = std::make_shared<Console>();
+    console->registerScriptEngine(pScriptEngine);
+
     pScriptEngine->executeScript(startupScript);
 
-    // return runScript(platform, isolate, startupScript.c_str());
-    
     return 0;
 }
 

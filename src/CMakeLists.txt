@@ -2,8 +2,10 @@ set(CMAKE_CXX_FLAGS "-std=c++14")
 
 set(SERVER_SOURCES
   main.cpp
+  Console.cpp
   Zv8/V8EngineFactory.cpp
   Zv8/V8Engine.cpp
+  Zv8/V8Module.cpp
   )
 
 find_package(Boost REQUIRED program_options)
