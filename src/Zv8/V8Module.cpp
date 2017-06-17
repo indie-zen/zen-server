@@ -6,6 +6,9 @@
 
 #include "V8Module.hpp"
 #include "V8Engine.hpp"
+#include "V8Type.hpp"
+
+#include <stdexcept>
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 namespace Zen {
@@ -30,14 +33,25 @@ V8Module::pScriptType_type
 V8Module::createScriptType(const std::string& _typeName, 
     const std::string& _docString, unsigned long _rawSize)
 {
-    throw std::runtime_error("V8Module::createScriptType(): Error, not implemented.");
+    V8Type* const pV8Type = new V8Type(this, _typeName, _docString, _rawSize);
+
+    m_module.Set(
+      v8::String::NewFromUtf8(getIsolate(), _typeName, v8::NewStringType::kNormal)
+          .ToLocalChecked(),
+      pV8Type->getRawType());
+
+    pScriptType_type const pType(pV8Type);
+    
+    m_scriptTypes[_typeName] = pType;
+
+    return pType;
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 V8Module::pScriptType_type
 V8Module::getScriptType(const std::string& _typeName)
 {
-    throw std::runtime_error("V8Module::getScriptType(): Error, not implemented.");
+    return m_scriptTypes[_typeName];
 }
 
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
@@ -69,6 +83,12 @@ V8Module::getScriptEngine()
     return m_pEngine->getSelfReference();
 }
 
+//-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
+v8::Isolate*
+V8Module::getIsolate()
+{
+    return m_pEngine->getIsolate();    
+}
 //-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~
 }   // namespace Zv8
 }   // namespace Zen

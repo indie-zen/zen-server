@@ -59,6 +59,8 @@ public:
 
     /// Convert a v8 string to a C string
     const char* toCString(const v8::String::Utf8Value& value); 
+
+    v8::Isolate* getIsolate(); 
     /// @}
 
     /// @name 'Structors

@@ -6,6 +6,7 @@ set(SERVER_SOURCES
   Zv8/V8EngineFactory.cpp
   Zv8/V8Engine.cpp
   Zv8/V8Module.cpp
+  Zv8/V8Type.cpp
   )
 
 find_package(Boost REQUIRED program_options)

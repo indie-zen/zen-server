@@ -37,7 +37,7 @@ public:
     /// object.
     typedef Zen::Scripting::I_ScriptWrapper*                            pObjectWrapper_type;
 
-    // typedef std::map<std::string, pScriptType_type>                  type_collection_type;
+    typedef std::map<std::string, pScriptType_type>                     ScriptTypes_type;
     /// @}
     
     /// @name I_ScriptModule implementation
@@ -50,6 +50,12 @@ public:
     virtual void createGlobalObject(const std::string& _name, pScriptType_type _pType, pObjectWrapper_type _pObject);
     virtual pScriptEngine_type getScriptEngine();
     /// @}
+    
+    /// @name V8Module implementation
+    /// @{
+private:
+    v8::Isolate* getIsolate(); 
+    /// @}
 
     /// @name 'Structors
     /// @{
@@ -61,9 +67,13 @@ public:
     /// @name Member Variables
     /// @{
 private:
-    V8Engine*       m_pEngine;
-    std::string     m_name;
-    std::string     m_docString;
+    V8Engine*           m_pEngine;
+    std::string         m_name;
+    std::string         m_docString;
+
+    ScriptTypes_type    m_scriptTypes;
+
+    v8::Persistent<v8::ObjectTemplate>  m_module;
     /// @}
     
 };  // class V8Module
